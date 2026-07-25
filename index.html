@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuantumTrade 1-Min Live Analysis</title>
+    <title>QuantumTrade Easy Market Selector</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -27,59 +27,46 @@
 </head>
 <body class="bg-darkBg text-gray-200 font-sans min-h-screen flex flex-col">
 
-    <!-- Header Navigation -->
-    <header class="bg-cardBg border-b border-borderBg px-6 py-3 flex flex-wrap justify-between items-center gap-4">
+    <!-- Top Header -->
+    <header class="bg-cardBg border-b border-borderBg px-6 py-3 flex justify-between items-center">
         <div class="flex items-center space-x-3">
             <i class="fa-solid fa-chart-line text-2xl text-emerald-400"></i>
-            <h1 class="text-xl font-bold tracking-wide text-white">Quantum<span class="text-emerald-400">Trade</span> Live Chart Pro</h1>
+            <h1 class="text-xl font-bold tracking-wide text-white">Quantum<span class="text-emerald-400">Trade</span> Fast Engine</h1>
         </div>
-        
-        <!-- Market Status Badge -->
         <div id="marketBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             MARKET OPEN
         </div>
     </header>
 
-    <!-- Main Layout -->
+    <!-- Main Container -->
     <main class="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow">
 
-        <!-- Left 3 Columns: Asset Selector & Live TradingView Chart -->
+        <!-- Left 3 Columns: Quick Market Selector + Live Chart -->
         <div class="lg:col-span-3 flex flex-col gap-4">
             
-            <!-- Category Tabs & Dropdown Bar -->
-            <div class="bg-cardBg border border-borderBg p-4 rounded-xl flex flex-wrap justify-between items-center gap-4">
+            <!-- Quick Search Bar & Popular Pair Buttons -->
+            <div class="bg-cardBg border border-borderBg p-4 rounded-xl space-y-3">
                 
-                <!-- Category Tabs -->
-                <div class="flex items-center space-x-2 bg-darkBg p-1 rounded-lg border border-borderBg flex-wrap gap-y-1">
-                    <button onclick="setCategory('currencies')" id="tab-currencies" class="px-3 py-1.5 text-xs font-bold rounded-md bg-emerald-500 text-darkBg transition">
-                        <i class="fa-solid fa-dollar-sign mr-1"></i> Forex
-                    </button>
-                    <button onclick="setCategory('crypto')" id="tab-crypto" class="px-3 py-1.5 text-xs font-bold rounded-md text-gray-400 hover:text-white transition">
-                        <i class="fa-brands fa-bitcoin mr-1"></i> Crypto
-                    </button>
-                    <button onclick="setCategory('commodities')" id="tab-commodities" class="px-3 py-1.5 text-xs font-bold rounded-md text-gray-400 hover:text-white transition">
-                        <i class="fa-solid fa-droplet mr-1"></i> Commodities
-                    </button>
-                    <button onclick="setCategory('stocks')" id="tab-stocks" class="px-3 py-1.5 text-xs font-bold rounded-md text-gray-400 hover:text-white transition">
-                        <i class="fa-solid fa-file-lines mr-1"></i> Stocks
-                    </button>
+                <!-- Search Bar -->
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-sm"></i>
+                    <input type="text" id="searchInput" onkeyup="filterMarkets()" placeholder="Type pair name (e.g. USD/CHF, BTC, Gold)..." class="w-full bg-darkBg border border-borderBg rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
 
-                <!-- Asset Select Dropdown -->
-                <div class="flex-grow max-w-xs">
-                    <select id="assetSelect" onchange="loadSelectedAsset()" class="w-full bg-darkBg border border-borderBg rounded-lg px-3 py-2 text-sm font-semibold text-white focus:outline-none focus:border-emerald-500">
-                    </select>
+                <!-- Popular Quick-Click Tiles -->
+                <div class="flex flex-wrap gap-2 pt-1" id="quickTiles">
+                    <!-- Dynamic Buttons Loaded by JS -->
                 </div>
             </div>
 
-            <!-- TradingView Advanced Live Chart Embed Container -->
-            <div class="bg-cardBg border border-borderBg p-2 rounded-xl h-[550px] relative overflow-hidden">
-                <div id="tradingview_advanced_chart" class="w-full h-full"></div>
+            <!-- TradingView Live Chart Container -->
+            <div class="bg-cardBg border border-borderBg p-2 rounded-xl h-[520px] relative overflow-hidden">
+                <div id="tradingview_chart" class="w-full h-full"></div>
             </div>
         </div>
 
-        <!-- Right Column: 1-Min Signal Engine -->
+        <!-- Right Column: Signal Engine -->
         <div class="bg-cardBg border border-borderBg p-5 rounded-xl flex flex-col justify-between">
             <div>
                 <h2 class="text-md font-bold text-white border-b border-borderBg pb-3 mb-4 flex items-center justify-between">
@@ -87,32 +74,26 @@
                     <span class="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">LIVE</span>
                 </h2>
 
-                <!-- Main Prediction Box -->
                 <div id="signalCard" class="bg-darkBg border border-borderBg p-6 rounded-xl text-center mb-6">
-                    <span class="text-xs text-gray-400 uppercase tracking-widest block mb-1">1-Min Next Candle</span>
+                    <span class="text-xs text-gray-400 uppercase tracking-widest block mb-1">1-Min Prediction</span>
                     <span id="signalText" class="text-2xl font-black text-gray-400">ANALYZING...</span>
-                    <span id="signalSubText" class="text-xs text-gray-500 block mt-2">Checking TradingView Chart data</span>
+                    <span id="signalSubText" class="text-xs text-gray-500 block mt-2">Reading live price action</span>
                 </div>
 
-                <!-- Market Details -->
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between items-center border-b border-borderBg pb-2">
-                        <span class="text-gray-400">Selected Market</span>
-                        <span id="selectedMarketText" class="font-bold text-white">EUR/USD</span>
+                        <span class="text-gray-400">Active Market</span>
+                        <span id="selectedMarketText" class="font-bold text-emerald-400">USD/CHF</span>
                     </div>
                     <div class="flex justify-between items-center border-b border-borderBg pb-2">
-                        <span class="text-gray-400">Chart Timeframe</span>
-                        <span class="font-bold text-emerald-400">1 Minute (1m)</span>
-                    </div>
-                    <div class="flex justify-between items-center border-b border-borderBg pb-2">
-                        <span class="text-gray-400">Market Status</span>
-                        <span id="tradingStatusText" class="font-bold text-emerald-400">Active</span>
+                        <span class="text-gray-400">Timeframe</span>
+                        <span class="font-bold text-white">1 Minute (1m)</span>
                     </div>
                 </div>
             </div>
 
             <div class="mt-6 pt-4 border-t border-borderBg text-[11px] text-gray-500 text-center">
-                <i class="fa-solid fa-shield-halved mr-1 text-emerald-400"></i> Auto Closed Market Protection Active
+                <i class="fa-solid fa-shield-halved mr-1 text-emerald-400"></i> Auto Closed Market Protection
             </div>
         </div>
     </main>
@@ -120,55 +101,35 @@
     <!-- TradingView Embed Script -->
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
-        const assetDatabase = {
-            currencies: [
-                { name: "EUR/USD", tvSymbol: "FX:EURUSD", is24x7: false },
-                { name: "GBP/USD", tvSymbol: "FX:GBPUSD", is24x7: false },
-                { name: "USD/JPY", tvSymbol: "FX:USDJPY", is24x7: false },
-                { name: "AUD/USD", tvSymbol: "FX:AUDUSD", is24x7: false },
-                { name: "GBP/JPY", tvSymbol: "FX:GBPJPY", is24x7: false },
-                { name: "EUR/JPY", tvSymbol: "FX:EURJPY", is24x7: false },
-                { name: "AUD/CAD", tvSymbol: "FX:AUDCAD", is24x7: false },
-                { name: "AUD/CHF", tvSymbol: "FX:AUDCHF", is24x7: false },
-                { name: "AUD/JPY", tvSymbol: "FX:AUDJPY", is24x7: false },
-                { name: "CAD/CHF", tvSymbol: "FX:CADCHF", is24x7: false },
-                { name: "CHF/JPY", tvSymbol: "FX:CHFJPY", is24x7: false },
-                { name: "EUR/AUD", tvSymbol: "FX:EURAUD", is24x7: false },
-                { name: "EUR/CAD", tvSymbol: "FX:EURCAD", is24x7: false },
-                { name: "EUR/CHF", tvSymbol: "FX:EURCHF", is24x7: false },
-                { name: "EUR/GBP", tvSymbol: "FX:EURGBP", is24x7: false },
-                { name: "GBP/AUD", tvSymbol: "FX:GBPAUD", is24x7: false },
-                { name: "GBP/CAD", tvSymbol: "FX:GBPCAD", is24x7: false },
-                { name: "GBP/CHF", tvSymbol: "FX:GBPCHF", is24x7: false },
-                { name: "USD/CAD", tvSymbol: "FX:USDCAD", is24x7: false },
-                { name: "USD/CHF", tvSymbol: "FX:USDCHF", is24x7: false }
-            ],
-            crypto: [
-                { name: "Bitcoin (BTC/USD)", tvSymbol: "BINANCE:BTCUSDT", is24x7: true },
-                { name: "Ethereum (ETH/USD)", tvSymbol: "BINANCE:ETHUSDT", is24x7: true },
-                { name: "Solana (SOL/USD)", tvSymbol: "BINANCE:SOLUSDT", is24x7: true },
-                { name: "Ripple (XRP/USD)", tvSymbol: "BINANCE:XRPUSDT", is24x7: true },
-                { name: "Chainlink (LINK/USD)", tvSymbol: "BINANCE:LINKUSDT", is24x7: true }
-            ],
-            commodities: [
-                { name: "Gold (XAU/USD)", tvSymbol: "OANDA:XAUUSD", is24x7: false },
-                { name: "Silver (XAG/USD)", tvSymbol: "OANDA:XAGUSD", is24x7: false },
-                { name: "Brent Oil", tvSymbol: "TVC:UKOIL", is24x7: false },
-                { name: "WTI Crude Oil", tvSymbol: "TVC:USOIL", is24x7: false },
-                { name: "Natural Gas", tvSymbol: "TVC:NATGAS", is24x7: false }
-            ],
-            stocks: [
-                { name: "Apple (AAPL)", tvSymbol: "NASDAQ:AAPL", is24x7: false },
-                { name: "Tesla (TSLA)", tvSymbol: "NASDAQ:TSLA", is24x7: false },
-                { name: "Microsoft (MSFT)", tvSymbol: "NASDAQ:MSFT", is24x7: false },
-                { name: "Meta / Facebook (META)", tvSymbol: "NASDAQ:META", is24x7: false },
-                { name: "Boeing (BA)", tvSymbol: "NYSE:BA", is24x7: false },
-                { name: "McDonald's (MCD)", tvSymbol: "NYSE:MCD", is24x7: false },
-                { name: "Alibaba (BABA)", tvSymbol: "NYSE:BABA", is24x7: false }
-            ]
-        };
+        // Combined All Markets List
+        const allMarkets = [
+            // Forex
+            { name: "USD/CHF", symbol: "FX:USDCHF", category: "Forex", is24x7: false },
+            { name: "EUR/USD", symbol: "FX:EURUSD", category: "Forex", is24x7: false },
+            { name: "GBP/USD", symbol: "FX:GBPUSD", category: "Forex", is24x7: false },
+            { name: "USD/JPY", symbol: "FX:USDJPY", is24x7: false },
+            { name: "AUD/USD", symbol: "FX:AUDUSD", category: "Forex", is24x7: false },
+            { name: "GBP/JPY", symbol: "FX:GBPJPY", category: "Forex", is24x7: false },
+            { name: "EUR/JPY", symbol: "FX:EURJPY", category: "Forex", is24x7: false },
+            { name: "AUD/CAD", symbol: "FX:AUDCAD", category: "Forex", is24x7: false },
+            { name: "CAD/CHF", symbol: "FX:CADCHF", category: "Forex", is24x7: false },
+            
+            // Crypto (24/7)
+            { name: "BTC/USD", symbol: "BINANCE:BTCUSDT", category: "Crypto", is24x7: true },
+            { name: "ETH/USD", symbol: "BINANCE:ETHUSDT", category: "Crypto", is24x7: true },
+            { name: "SOL/USD", symbol: "BINANCE:SOLUSDT", category: "Crypto", is24x7: true },
+            
+            // Commodities
+            { name: "Gold (XAU/USD)", symbol: "OANDA:XAUUSD", category: "Commodities", is24x7: false },
+            { name: "Silver (XAG/USD)", symbol: "OANDA:XAGUSD", category: "Commodities", is24x7: false },
+            { name: "Crude Oil", symbol: "TVC:USOIL", category: "Commodities", is24x7: false },
 
-        let currentCategory = 'currencies';
+            // Stocks
+            { name: "Apple", symbol: "NASDAQ:AAPL", category: "Stocks", is24x7: false },
+            { name: "Tesla", symbol: "NASDAQ:TSLA", category: "Stocks", is24x7: false }
+        ];
+
+        let selectedMarket = allMarkets[0]; // Default USD/CHF
 
         function isMarketOpen(is24x7) {
             if (is24x7) return true;
@@ -176,52 +137,48 @@
             return !(day === 0 || day === 6);
         }
 
-        function setCategory(category) {
-            currentCategory = category;
-            
-            ['currencies', 'crypto', 'commodities', 'stocks'].forEach(cat => {
-                const btn = document.getElementById(`tab-${cat}`);
-                if (cat === category) {
-                    btn.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-emerald-500 text-darkBg transition";
-                } else {
-                    btn.className = "px-3 py-1.5 text-xs font-bold rounded-md text-gray-400 hover:text-white transition";
-                }
-            });
+        // Render Quick Select Buttons
+        function renderTiles(list) {
+            const container = document.getElementById('quickTiles');
+            container.innerHTML = '';
 
-            populateAssetDropdown();
+            list.forEach((item) => {
+                const btn = document.createElement('button');
+                const isSelected = item.name === selectedMarket.name;
+                
+                btn.className = `px-3 py-1.5 text-xs font-bold rounded-lg transition border ${
+                    isSelected 
+                        ? 'bg-emerald-500 text-darkBg border-emerald-400' 
+                        : 'bg-darkBg text-gray-300 border-borderBg hover:border-emerald-500 hover:text-white'
+                }`;
+                btn.innerText = item.name;
+                btn.onclick = () => selectPair(item);
+                container.appendChild(btn);
+            });
         }
 
-        function populateAssetDropdown() {
-            const select = document.getElementById('assetSelect');
-            select.innerHTML = '';
-
-            assetDatabase[currentCategory].forEach((asset, index) => {
-                const opt = document.createElement('option');
-                opt.value = index;
-                opt.innerText = asset.name;
-                select.appendChild(opt);
-            });
-
-            loadSelectedAsset();
+        // Search Filter
+        function filterMarkets() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allMarkets.filter(m => m.name.toLowerCase().includes(query));
+            renderTiles(filtered);
         }
 
-        function loadSelectedAsset() {
-            const index = document.getElementById('assetSelect').value || 0;
-            const asset = assetDatabase[currentCategory][index];
-            const isOpen = isMarketOpen(asset.is24x7);
+        // Select Pair Function
+        function selectPair(market) {
+            selectedMarket = market;
+            renderTiles(allMarkets);
 
-            document.getElementById('selectedMarketText').innerText = asset.name;
-            
+            document.getElementById('selectedMarketText').innerText = market.name;
+            const isOpen = isMarketOpen(market.is24x7);
+
             const badge = document.getElementById('marketBadge');
-            const statusText = document.getElementById('tradingStatusText');
             const signalText = document.getElementById('signalText');
             const signalSubText = document.getElementById('signalSubText');
 
             if (!isOpen) {
                 badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30 flex items-center gap-2";
                 badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-400"></span> MARKET CLOSED`;
-                statusText.innerText = "Closed (Weekend)";
-                statusText.className = "font-bold text-red-400";
                 
                 signalText.innerText = "MARKET CLOSED";
                 signalText.className = "text-xl font-black text-red-500";
@@ -229,33 +186,30 @@
             } else {
                 badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-2";
                 badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> MARKET OPEN`;
-                statusText.innerText = "Active";
-                statusText.className = "font-bold text-emerald-400";
                 
                 signalText.innerText = "ANALYZING...";
                 signalText.className = "text-2xl font-black text-gray-400";
                 signalSubText.innerText = "Awaiting 1-min candle close";
             }
 
-            // Load Full-Featured TradingView Live Chart Widget
+            // Reload Live TradingView Chart
             new TradingView.widget({
                 "autosize": true,
-                "symbol": asset.tvSymbol,
+                "symbol": market.symbol,
                 "interval": "1", // 1-Min Timeframe
                 "timezone": "Etc/UTC",
                 "theme": "dark",
-                "style": "1", // Candlestick View
+                "style": "1",
                 "locale": "en",
                 "toolbar_bg": "#151921",
                 "enable_publishing": false,
-                "allow_symbol_change": true,
-                "hide_side_toolbar": false,
-                "container_id": "tradingview_advanced_chart"
+                "container_id": "tradingview_chart"
             });
         }
 
         window.onload = () => {
-            setCategory('currencies');
+            renderTiles(allMarkets);
+            selectPair(allMarkets[0]); // Open USD/CHF by default
         };
     </script>
 </body>
