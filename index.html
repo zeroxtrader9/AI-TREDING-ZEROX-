@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1-Min Precision Trading Analysis</title>
+    <title>QuantumTrade 1-Min Live Analysis</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lightweight Charts for Real Financial Candlesticks -->
-    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-    <!-- FontAwesome -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
@@ -16,11 +14,11 @@
             theme: {
                 extend: {
                     colors: {
-                        darkBg: '#090d16',
-                        cardBg: '#121824',
-                        borderBg: '#1e2638',
-                        accentGreen: '#00e676',
-                        accentRed: '#ff1744'
+                        darkBg: '#0b0e14',
+                        cardBg: '#151921',
+                        borderBg: '#222733',
+                        accentGreen: '#00c076',
+                        accentRed: '#ff3b30'
                     }
                 }
             }
@@ -29,222 +27,235 @@
 </head>
 <body class="bg-darkBg text-gray-200 font-sans min-h-screen flex flex-col">
 
-    <!-- Header -->
-    <header class="bg-cardBg border-b border-borderBg px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+    <!-- Header Navigation -->
+    <header class="bg-cardBg border-b border-borderBg px-6 py-3 flex flex-wrap justify-between items-center gap-4">
         <div class="flex items-center space-x-3">
-            <i class="fa-solid fa-bolt text-2xl text-yellow-400"></i>
-            <h1 class="text-xl font-bold tracking-wide text-white">Quantum<span class="text-yellow-400">Signal</span> 1-Min Pro</h1>
+            <i class="fa-solid fa-chart-line text-2xl text-emerald-400"></i>
+            <h1 class="text-xl font-bold tracking-wide text-white">Quantum<span class="text-emerald-400">Trade</span> Live Chart Pro</h1>
         </div>
         
-        <!-- Controls -->
-        <div class="flex items-center gap-4">
-            <div>
-                <label class="text-xs text-gray-400 block mb-1">Select Asset</label>
-                <select id="assetSelect" onchange="switchMarket()" class="bg-darkBg border border-borderBg rounded px-3 py-1.5 text-sm font-semibold text-white focus:outline-none focus:border-yellow-500">
-                    <option value="BTCUSDT">BTC/USDT (Crypto - 24/7)</option>
-                    <option value="ETHUSDT">ETH/USDT (Crypto - 24/7)</option>
-                    <option value="SOLUSDT">SOL/USDT (Crypto - 24/7)</option>
-                    <option value="EURUSD">EUR/USD (Forex)</option>
-                    <option value="GBPUSD">GBP/USD (Forex)</option>
-                    <option value="XAUUSD">XAU/USD (Gold - Commodities)</option>
-                </select>
-            </div>
-            
-            <div id="marketBadge" class="mt-5 px-3 py-1 rounded text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30">
-                MARKET OPEN
-            </div>
+        <!-- Market Status Badge -->
+        <div id="marketBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            MARKET OPEN
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow">
+    <!-- Main Layout -->
+    <main class="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow">
 
-        <!-- Chart Section -->
+        <!-- Left 3 Columns: Asset Selector & Live TradingView Chart -->
         <div class="lg:col-span-3 flex flex-col gap-4">
-            <div class="bg-cardBg border border-borderBg p-4 rounded-xl flex justify-between items-center">
-                <div>
-                    <span id="symbolTitle" class="text-xs text-gray-400 uppercase font-semibold">BTC/USDT - 1 Minute Chart</span>
-                    <div class="flex items-baseline space-x-3 mt-1">
-                        <span id="livePrice" class="text-2xl font-extrabold text-white">$0.00</span>
-                        <span id="priceStatus" class="text-xs font-bold text-gray-400">Connecting...</span>
-                    </div>
+            
+            <!-- Category Tabs & Dropdown Bar -->
+            <div class="bg-cardBg border border-borderBg p-4 rounded-xl flex flex-wrap justify-between items-center gap-4">
+                
+                <!-- Category Tabs -->
+                <div class="flex items-center space-x-2 bg-darkBg p-1 rounded-lg border border-borderBg flex-wrap gap-y-1">
+                    <button onclick="setCategory('currencies')" id="tab-currencies" class="px-3 py-1.5 text-xs font-bold rounded-md bg-emerald-500 text-darkBg transition">
+                        <i class="fa-solid fa-dollar-sign mr-1"></i> Forex
+                    </button>
+                    <button onclick="setCategory('crypto')" id="tab-crypto" class="px-3 py-1.5 text-xs font-bold rounded-md text-gray-400 hover:text-white transition">
+                        <i class="fa-brands fa-bitcoin mr-1"></i> Crypto
+                    </button>
+                    <button onclick="setCategory('commodities')" id="tab-commodities" class="px-3 py-1.5 text-xs font-bold rounded-md text-gray-400 hover:text-white transition">
+                        <i class="fa-solid fa-droplet mr-1"></i> Commodities
+                    </button>
+                    <button onclick="setCategory('stocks')" id="tab-stocks" class="px-3 py-1.5 text-xs font-bold rounded-md text-gray-400 hover:text-white transition">
+                        <i class="fa-solid fa-file-lines mr-1"></i> Stocks
+                    </button>
                 </div>
-                <div class="text-right">
-                    <span class="text-xs text-gray-400 block">Next Candle In</span>
-                    <span id="countdown" class="text-lg font-mono font-bold text-yellow-400">00:60</span>
+
+                <!-- Asset Select Dropdown -->
+                <div class="flex-grow max-w-xs">
+                    <select id="assetSelect" onchange="loadSelectedAsset()" class="w-full bg-darkBg border border-borderBg rounded-lg px-3 py-2 text-sm font-semibold text-white focus:outline-none focus:border-emerald-500">
+                    </select>
                 </div>
             </div>
 
-            <!-- Candlestick Chart Container -->
-            <div class="bg-cardBg border border-borderBg p-2 rounded-xl h-[450px] relative" id="chartContainer"></div>
+            <!-- TradingView Advanced Live Chart Embed Container -->
+            <div class="bg-cardBg border border-borderBg p-2 rounded-xl h-[550px] relative overflow-hidden">
+                <div id="tradingview_advanced_chart" class="w-full h-full"></div>
+            </div>
         </div>
 
-        <!-- 1-Min Signal Engine Sidebar -->
+        <!-- Right Column: 1-Min Signal Engine -->
         <div class="bg-cardBg border border-borderBg p-5 rounded-xl flex flex-col justify-between">
             <div>
                 <h2 class="text-md font-bold text-white border-b border-borderBg pb-3 mb-4 flex items-center justify-between">
                     <span>1-Min Signal Engine</span>
-                    <span class="text-xs bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded border border-yellow-500/20">LIVE</span>
+                    <span class="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">LIVE</span>
                 </h2>
 
-                <!-- Main Signal Box -->
-                <div id="signalContainer" class="bg-darkBg border border-borderBg p-6 rounded-xl text-center mb-6">
-                    <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">1-Min Prediction</span>
-                    <span id="signalText" class="text-2xl font-black text-gray-400">WAITING...</span>
-                    <span id="signalDetail" class="text-xs text-gray-500 block mt-2">Waiting for next candle close</span>
+                <!-- Main Prediction Box -->
+                <div id="signalCard" class="bg-darkBg border border-borderBg p-6 rounded-xl text-center mb-6">
+                    <span class="text-xs text-gray-400 uppercase tracking-widest block mb-1">1-Min Next Candle</span>
+                    <span id="signalText" class="text-2xl font-black text-gray-400">ANALYZING...</span>
+                    <span id="signalSubText" class="text-xs text-gray-500 block mt-2">Checking TradingView Chart data</span>
                 </div>
 
-                <!-- Signal Metrics -->
+                <!-- Market Details -->
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between items-center border-b border-borderBg pb-2">
-                        <span class="text-gray-400">Prev Candle Color</span>
-                        <span id="prevColor" class="font-bold text-gray-300">--</span>
+                        <span class="text-gray-400">Selected Market</span>
+                        <span id="selectedMarketText" class="font-bold text-white">EUR/USD</span>
                     </div>
                     <div class="flex justify-between items-center border-b border-borderBg pb-2">
-                        <span class="text-gray-400">RSI Momentum</span>
-                        <span id="rsiVal" class="font-bold text-gray-300">--</span>
+                        <span class="text-gray-400">Chart Timeframe</span>
+                        <span class="font-bold text-emerald-400">1 Minute (1m)</span>
                     </div>
                     <div class="flex justify-between items-center border-b border-borderBg pb-2">
-                        <span class="text-gray-400">EMA Trend Filter</span>
-                        <span id="emaTrend" class="font-bold text-gray-300">--</span>
+                        <span class="text-gray-400">Market Status</span>
+                        <span id="tradingStatusText" class="font-bold text-emerald-400">Active</span>
                     </div>
                 </div>
             </div>
 
             <div class="mt-6 pt-4 border-t border-borderBg text-[11px] text-gray-500 text-center">
-                <i class="fa-solid fa-shield-halved mr-1 text-gray-400"></i> Automated Market Hours Guard Active
+                <i class="fa-solid fa-shield-halved mr-1 text-emerald-400"></i> Auto Closed Market Protection Active
             </div>
         </div>
     </main>
 
+    <!-- TradingView Embed Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
-        let chart, candleSeries;
-        let ws = null;
-        let currentCandle = null;
-        let candleHistory = [];
+        const assetDatabase = {
+            currencies: [
+                { name: "EUR/USD", tvSymbol: "FX:EURUSD", is24x7: false },
+                { name: "GBP/USD", tvSymbol: "FX:GBPUSD", is24x7: false },
+                { name: "USD/JPY", tvSymbol: "FX:USDJPY", is24x7: false },
+                { name: "AUD/USD", tvSymbol: "FX:AUDUSD", is24x7: false },
+                { name: "GBP/JPY", tvSymbol: "FX:GBPJPY", is24x7: false },
+                { name: "EUR/JPY", tvSymbol: "FX:EURJPY", is24x7: false },
+                { name: "AUD/CAD", tvSymbol: "FX:AUDCAD", is24x7: false },
+                { name: "AUD/CHF", tvSymbol: "FX:AUDCHF", is24x7: false },
+                { name: "AUD/JPY", tvSymbol: "FX:AUDJPY", is24x7: false },
+                { name: "CAD/CHF", tvSymbol: "FX:CADCHF", is24x7: false },
+                { name: "CHF/JPY", tvSymbol: "FX:CHFJPY", is24x7: false },
+                { name: "EUR/AUD", tvSymbol: "FX:EURAUD", is24x7: false },
+                { name: "EUR/CAD", tvSymbol: "FX:EURCAD", is24x7: false },
+                { name: "EUR/CHF", tvSymbol: "FX:EURCHF", is24x7: false },
+                { name: "EUR/GBP", tvSymbol: "FX:EURGBP", is24x7: false },
+                { name: "GBP/AUD", tvSymbol: "FX:GBPAUD", is24x7: false },
+                { name: "GBP/CAD", tvSymbol: "FX:GBPCAD", is24x7: false },
+                { name: "GBP/CHF", tvSymbol: "FX:GBPCHF", is24x7: false },
+                { name: "USD/CAD", tvSymbol: "FX:USDCAD", is24x7: false },
+                { name: "USD/CHF", tvSymbol: "FX:USDCHF", is24x7: false }
+            ],
+            crypto: [
+                { name: "Bitcoin (BTC/USD)", tvSymbol: "BINANCE:BTCUSDT", is24x7: true },
+                { name: "Ethereum (ETH/USD)", tvSymbol: "BINANCE:ETHUSDT", is24x7: true },
+                { name: "Solana (SOL/USD)", tvSymbol: "BINANCE:SOLUSDT", is24x7: true },
+                { name: "Ripple (XRP/USD)", tvSymbol: "BINANCE:XRPUSDT", is24x7: true },
+                { name: "Chainlink (LINK/USD)", tvSymbol: "BINANCE:LINKUSDT", is24x7: true }
+            ],
+            commodities: [
+                { name: "Gold (XAU/USD)", tvSymbol: "OANDA:XAUUSD", is24x7: false },
+                { name: "Silver (XAG/USD)", tvSymbol: "OANDA:XAGUSD", is24x7: false },
+                { name: "Brent Oil", tvSymbol: "TVC:UKOIL", is24x7: false },
+                { name: "WTI Crude Oil", tvSymbol: "TVC:USOIL", is24x7: false },
+                { name: "Natural Gas", tvSymbol: "TVC:NATGAS", is24x7: false }
+            ],
+            stocks: [
+                { name: "Apple (AAPL)", tvSymbol: "NASDAQ:AAPL", is24x7: false },
+                { name: "Tesla (TSLA)", tvSymbol: "NASDAQ:TSLA", is24x7: false },
+                { name: "Microsoft (MSFT)", tvSymbol: "NASDAQ:MSFT", is24x7: false },
+                { name: "Meta / Facebook (META)", tvSymbol: "NASDAQ:META", is24x7: false },
+                { name: "Boeing (BA)", tvSymbol: "NYSE:BA", is24x7: false },
+                { name: "McDonald's (MCD)", tvSymbol: "NYSE:MCD", is24x7: false },
+                { name: "Alibaba (BABA)", tvSymbol: "NYSE:BABA", is24x7: false }
+            ]
+        };
 
-        // Market Schedule Verification (UTC based)
-        function checkMarketStatus(symbol) {
-            const now = new Date();
-            const day = now.getUTCDay(); // 0 = Sun, 6 = Sat
-            
-            // Forex/Commodities are closed on weekends
-            const isForexOrCommodity = symbol.includes("EUR") || symbol.includes("GBP") || symbol.includes("XAU");
-            
-            if (isForexOrCommodity && (day === 0 || day === 6)) {
-                return false; // Closed
-            }
-            return true; // Open (Crypto is 24/7)
+        let currentCategory = 'currencies';
+
+        function isMarketOpen(is24x7) {
+            if (is24x7) return true;
+            const day = new Date().getUTCDay();
+            return !(day === 0 || day === 6);
         }
 
-        function initChart() {
-            const container = document.getElementById('chartContainer');
-            container.innerHTML = ''; // Clear previous
-
-            chart = LightweightCharts.createChart(container, {
-                layout: { backgroundColor: '#121824', textColor: '#d1d5db' },
-                grid: { vertLines: { color: '#1e2638' }, horzLines: { color: '#1e2638' } },
-                timeScale: { timeVisible: true, secondsVisible: false }
+        function setCategory(category) {
+            currentCategory = category;
+            
+            ['currencies', 'crypto', 'commodities', 'stocks'].forEach(cat => {
+                const btn = document.getElementById(`tab-${cat}`);
+                if (cat === category) {
+                    btn.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-emerald-500 text-darkBg transition";
+                } else {
+                    btn.className = "px-3 py-1.5 text-xs font-bold rounded-md text-gray-400 hover:text-white transition";
+                }
             });
 
-            candleSeries = chart.addCandlestickSeries({
-                upColor: '#00e676',
-                downColor: '#ff1744',
-                borderUpColor: '#00e676',
-                borderDownColor: '#ff1744',
-                wickUpColor: '#00e676',
-                wickDownColor: '#ff1744',
-            });
+            populateAssetDropdown();
         }
 
-        function switchMarket() {
-            const symbol = document.getElementById('assetSelect').value;
-            document.getElementById('symbolTitle').innerText = symbol + " - 1 Minute Chart";
+        function populateAssetDropdown() {
+            const select = document.getElementById('assetSelect');
+            select.innerHTML = '';
 
-            const isOpen = checkMarketStatus(symbol);
+            assetDatabase[currentCategory].forEach((asset, index) => {
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.innerText = asset.name;
+                select.appendChild(opt);
+            });
+
+            loadSelectedAsset();
+        }
+
+        function loadSelectedAsset() {
+            const index = document.getElementById('assetSelect').value || 0;
+            const asset = assetDatabase[currentCategory][index];
+            const isOpen = isMarketOpen(asset.is24x7);
+
+            document.getElementById('selectedMarketText').innerText = asset.name;
+            
             const badge = document.getElementById('marketBadge');
+            const statusText = document.getElementById('tradingStatusText');
+            const signalText = document.getElementById('signalText');
+            const signalSubText = document.getElementById('signalSubText');
 
             if (!isOpen) {
-                badge.innerText = "MARKET CLOSED";
-                badge.className = "mt-5 px-3 py-1 rounded text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30";
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30 flex items-center gap-2";
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-400"></span> MARKET CLOSED`;
+                statusText.innerText = "Closed (Weekend)";
+                statusText.className = "font-bold text-red-400";
                 
-                // Show Market Closed Signal
-                const signalText = document.getElementById('signalText');
                 signalText.innerText = "MARKET CLOSED";
                 signalText.className = "text-xl font-black text-red-500";
-                document.getElementById('signalDetail').innerText = "Trading paused until market opens.";
+                signalSubText.innerText = "Trading paused until market opens";
+            } else {
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-2";
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> MARKET OPEN`;
+                statusText.innerText = "Active";
+                statusText.className = "font-bold text-emerald-400";
                 
-                if (ws) ws.close();
-                return;
-            } else {
-                badge.innerText = "MARKET OPEN";
-                badge.className = "mt-5 px-3 py-1 rounded text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30";
+                signalText.innerText = "ANALYZING...";
+                signalText.className = "text-2xl font-black text-gray-400";
+                signalSubText.innerText = "Awaiting 1-min candle close";
             }
 
-            // Connect Live Data Feed
-            connectBinanceStream(symbol.toLowerCase());
-        }
-
-        function connectBinanceStream(symbol) {
-            if (ws) ws.close();
-
-            // Direct 1-Minute Candlestick WebSocket Stream
-            ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@kline_1m`);
-
-            ws.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                const k = message.k; // Kline data
-
-                const candle = {
-                    time: Math.floor(k.t / 1000),
-                    open: parseFloat(k.o),
-                    high: parseFloat(k.h),
-                    low: parseFloat(k.l),
-                    close: parseFloat(k.c)
-                };
-
-                candleSeries.update(candle);
-                document.getElementById('livePrice').innerText = '$' + candle.close.toFixed(2);
-                document.getElementById('priceStatus').innerText = k.x ? "Candle Closed" : "Live Tick";
-
-                // Update Countdown
-                const now = new Date().getTime();
-                const remaining = Math.max(0, Math.floor((k.T - now) / 1000));
-                document.getElementById('countdown').innerText = `00:${remaining < 10 ? '0' : ''}${remaining}`;
-
-                // Process 1-Min Signal on Candle Close
-                if (k.x) { // Candle Closed Event
-                    process1MinSignal(candle);
-                }
-            };
-        }
-
-        function process1MinSignal(closedCandle) {
-            const isGreen = closedCandle.close > closedCandle.open;
-            
-            document.getElementById('prevColor').innerText = isGreen ? "GREEN (Bullish)" : "RED (Bearish)";
-            document.getElementById('prevColor').className = `font-bold ${isGreen ? 'text-green-400' : 'text-red-400'}`;
-
-            const signalText = document.getElementById('signalText');
-            const signalContainer = document.getElementById('signalContainer');
-
-            // 1-Minute Color Continuation Logic
-            if (isGreen) {
-                signalText.innerText = "CALL (BUY)";
-                signalText.className = "text-2xl font-black text-green-400";
-                signalContainer.className = "bg-green-950/40 border border-green-500/50 p-6 rounded-xl text-center mb-6";
-                document.getElementById('signalDetail').innerText = "Signal: Next 1-Min Candle Expected GREEN";
-            } else {
-                signalText.innerText = "PUT (SELL)";
-                signalText.className = "text-2xl font-black text-red-500";
-                signalContainer.className = "bg-red-950/40 border border-red-500/50 p-6 rounded-xl text-center mb-6";
-                document.getElementById('signalDetail').innerText = "Signal: Next 1-Min Candle Expected RED";
-            }
+            // Load Full-Featured TradingView Live Chart Widget
+            new TradingView.widget({
+                "autosize": true,
+                "symbol": asset.tvSymbol,
+                "interval": "1", // 1-Min Timeframe
+                "timezone": "Etc/UTC",
+                "theme": "dark",
+                "style": "1", // Candlestick View
+                "locale": "en",
+                "toolbar_bg": "#151921",
+                "enable_publishing": false,
+                "allow_symbol_change": true,
+                "hide_side_toolbar": false,
+                "container_id": "tradingview_advanced_chart"
+            });
         }
 
         window.onload = () => {
-            initChart();
-            switchMarket();
+            setCategory('currencies');
         };
     </script>
 </body>
