@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuantumTrade - Binary Analysis Engine</title>
-    <!-- Tailwind CSS CDN -->
+    <title>1-Min Precision Trading Analysis</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- FontAwesome Icons -->
+    <!-- Lightweight Charts for Real Financial Candlesticks -->
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
@@ -16,11 +16,11 @@
             theme: {
                 extend: {
                     colors: {
-                        darkBg: '#0b0e14',
-                        cardBg: '#151921',
-                        borderBg: '#222733',
-                        accentGreen: '#00c076',
-                        accentRed: '#ff3b30'
+                        darkBg: '#090d16',
+                        cardBg: '#121824',
+                        borderBg: '#1e2638',
+                        accentGreen: '#00e676',
+                        accentRed: '#ff1744'
                     }
                 }
             }
@@ -29,294 +29,222 @@
 </head>
 <body class="bg-darkBg text-gray-200 font-sans min-h-screen flex flex-col">
 
-    <!-- Top Navigation -->
+    <!-- Header -->
     <header class="bg-cardBg border-b border-borderBg px-6 py-4 flex flex-wrap justify-between items-center gap-4">
         <div class="flex items-center space-x-3">
-            <i class="fa-solid fa-chart-line text-2xl text-emerald-400"></i>
-            <h1 class="text-xl font-bold tracking-wide text-white">Quantum<span class="text-emerald-400">Trade</span> Pro</h1>
+            <i class="fa-solid fa-bolt text-2xl text-yellow-400"></i>
+            <h1 class="text-xl font-bold tracking-wide text-white">Quantum<span class="text-yellow-400">Signal</span> 1-Min Pro</h1>
         </div>
         
-        <!-- Controls Header -->
-        <div class="flex flex-wrap items-center gap-4">
-            <!-- Market Selector -->
+        <!-- Controls -->
+        <div class="flex items-center gap-4">
             <div>
-                <label class="text-xs text-gray-400 block mb-1">Asset</label>
-                <select id="assetSelect" onchange="updateMarketData()" class="bg-darkBg border border-borderBg rounded px-3 py-1.5 text-sm font-semibold focus:outline-none focus:border-emerald-500">
-                    <option value="bitcoin">Bitcoin (BTC/USD)</option>
-                    <option value="ethereum">Ethereum (ETH/USD)</option>
-                    <option value="solana">Solana (SOL/USD)</option>
-                    <option value="ripple">XRP (XRP/USD)</option>
+                <label class="text-xs text-gray-400 block mb-1">Select Asset</label>
+                <select id="assetSelect" onchange="switchMarket()" class="bg-darkBg border border-borderBg rounded px-3 py-1.5 text-sm font-semibold text-white focus:outline-none focus:border-yellow-500">
+                    <option value="BTCUSDT">BTC/USDT (Crypto - 24/7)</option>
+                    <option value="ETHUSDT">ETH/USDT (Crypto - 24/7)</option>
+                    <option value="SOLUSDT">SOL/USDT (Crypto - 24/7)</option>
+                    <option value="EURUSD">EUR/USD (Forex)</option>
+                    <option value="GBPUSD">GBP/USD (Forex)</option>
+                    <option value="XAUUSD">XAU/USD (Gold - Commodities)</option>
                 </select>
             </div>
-
-            <!-- Timeframe Selector -->
-            <div>
-                <label class="text-xs text-gray-400 block mb-1">Timeframe</label>
-                <select id="timeframeSelect" onchange="updateMarketData()" class="bg-darkBg border border-borderBg rounded px-3 py-1.5 text-sm font-semibold focus:outline-none focus:border-emerald-500">
-                    <option value="1">1 Day</option>
-                    <option value="7">7 Days</option>
-                    <option value="30">30 Days</option>
-                </select>
+            
+            <div id="marketBadge" class="mt-5 px-3 py-1 rounded text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30">
+                MARKET OPEN
             </div>
-
-            <button onclick="updateMarketData()" class="mt-4 bg-emerald-500 hover:bg-emerald-600 text-darkBg font-bold px-4 py-1.5 rounded text-sm transition">
-                <i class="fa-solid fa-rotate-right mr-1"></i> Refresh
-            </button>
         </div>
     </header>
 
-    <!-- Main Dashboard Grid -->
+    <!-- Main Container -->
     <main class="p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow">
 
-        <!-- Left 3 Columns: Chart & Technical Metrics -->
-        <div class="lg:col-span-3 flex flex-col gap-6">
-            
-            <!-- Price Banner -->
-            <div class="bg-cardBg border border-borderBg p-4 rounded-xl flex flex-wrap justify-between items-center">
+        <!-- Chart Section -->
+        <div class="lg:col-span-3 flex flex-col gap-4">
+            <div class="bg-cardBg border border-borderBg p-4 rounded-xl flex justify-between items-center">
                 <div>
-                    <span id="assetTitle" class="text-sm font-medium text-gray-400">BITCOIN / USD</span>
+                    <span id="symbolTitle" class="text-xs text-gray-400 uppercase font-semibold">BTC/USDT - 1 Minute Chart</span>
                     <div class="flex items-baseline space-x-3 mt-1">
-                        <span id="currentPrice" class="text-2xl font-extrabold text-white">$0.00</span>
-                        <span id="priceChange" class="text-sm font-bold text-emerald-400">+0.00%</span>
+                        <span id="livePrice" class="text-2xl font-extrabold text-white">$0.00</span>
+                        <span id="priceStatus" class="text-xs font-bold text-gray-400">Connecting...</span>
                     </div>
                 </div>
-                <div class="flex space-x-6 text-sm text-gray-400">
-                    <div>High: <span id="highPrice" class="text-white font-semibold">$0.00</span></div>
-                    <div>Low: <span id="lowPrice" class="text-white font-semibold">$0.00</span></div>
+                <div class="text-right">
+                    <span class="text-xs text-gray-400 block">Next Candle In</span>
+                    <span id="countdown" class="text-lg font-mono font-bold text-yellow-400">00:60</span>
                 </div>
             </div>
 
-            <!-- Interactive Chart Panel -->
-            <div class="bg-cardBg border border-borderBg p-4 rounded-xl h-[420px] relative">
-                <canvas id="marketChart"></canvas>
-            </div>
-
-            <!-- Technical Indicators Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-cardBg border border-borderBg p-3 rounded-lg text-center">
-                    <span class="text-xs text-gray-400 block">RSI (14)</span>
-                    <span id="rsiValue" class="text-lg font-bold text-white">--</span>
-                    <span id="rsiState" class="text-[10px] block text-gray-500 mt-0.5">Neutral</span>
-                </div>
-                <div class="bg-cardBg border border-borderBg p-3 rounded-lg text-center">
-                    <span class="text-xs text-gray-400 block">EMA (9)</span>
-                    <span id="emaValue" class="text-lg font-bold text-white">--</span>
-                    <span id="emaState" class="text-[10px] block text-gray-500 mt-0.5">--</span>
-                </div>
-                <div class="bg-cardBg border border-borderBg p-3 rounded-lg text-center">
-                    <span class="text-xs text-gray-400 block">SMA (21)</span>
-                    <span id="smaValue" class="text-lg font-bold text-white">--</span>
-                    <span id="smaState" class="text-[10px] block text-gray-500 mt-0.5">--</span>
-                </div>
-                <div class="bg-cardBg border border-borderBg p-3 rounded-lg text-center">
-                    <span class="text-xs text-gray-400 block">Bollinger Upper/Lower</span>
-                    <span id="bbValue" class="text-xs font-bold text-white">-- / --</span>
-                    <span id="bbState" class="text-[10px] block text-gray-500 mt-0.5">In Range</span>
-                </div>
-            </div>
+            <!-- Candlestick Chart Container -->
+            <div class="bg-cardBg border border-borderBg p-2 rounded-xl h-[450px] relative" id="chartContainer"></div>
         </div>
 
-        <!-- Right 1 Column: Signal Engine Sidebar -->
+        <!-- 1-Min Signal Engine Sidebar -->
         <div class="bg-cardBg border border-borderBg p-5 rounded-xl flex flex-col justify-between">
             <div>
-                <h2 class="text-lg font-bold text-white border-b border-borderBg pb-3 mb-4">
-                    <i class="fa-solid fa-bolt text-yellow-400 mr-2"></i>Confluence Engine
+                <h2 class="text-md font-bold text-white border-b border-borderBg pb-3 mb-4 flex items-center justify-between">
+                    <span>1-Min Signal Engine</span>
+                    <span class="text-xs bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded border border-yellow-500/20">LIVE</span>
                 </h2>
 
-                <!-- Main Recommendation Badge -->
-                <div id="signalBadge" class="bg-darkBg border border-borderBg p-6 rounded-xl text-center mb-6">
-                    <span class="text-xs text-gray-400 uppercase tracking-widest block mb-1">Signal</span>
-                    <span id="signalText" class="text-2xl font-black text-gray-400">ANALYZING...</span>
-                    <span id="signalScore" class="text-xs text-gray-500 block mt-2">Confluence Score: 0/100</span>
+                <!-- Main Signal Box -->
+                <div id="signalContainer" class="bg-darkBg border border-borderBg p-6 rounded-xl text-center mb-6">
+                    <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">1-Min Prediction</span>
+                    <span id="signalText" class="text-2xl font-black text-gray-400">WAITING...</span>
+                    <span id="signalDetail" class="text-xs text-gray-500 block mt-2">Waiting for next candle close</span>
                 </div>
 
-                <!-- Signal Factors Checklist -->
-                <div class="space-y-3">
-                    <h3 class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Technical Factors</h3>
-                    
-                    <div class="flex justify-between items-center text-sm border-b border-borderBg/50 pb-2">
-                        <span class="text-gray-300">RSI Momentum</span>
-                        <span id="rsiFactor" class="font-bold text-gray-500">--</span>
+                <!-- Signal Metrics -->
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between items-center border-b border-borderBg pb-2">
+                        <span class="text-gray-400">Prev Candle Color</span>
+                        <span id="prevColor" class="font-bold text-gray-300">--</span>
                     </div>
-                    <div class="flex justify-between items-center text-sm border-b border-borderBg/50 pb-2">
-                        <span class="text-gray-300">EMA vs Price</span>
-                        <span id="emaFactor" class="font-bold text-gray-500">--</span>
+                    <div class="flex justify-between items-center border-b border-borderBg pb-2">
+                        <span class="text-gray-400">RSI Momentum</span>
+                        <span id="rsiVal" class="font-bold text-gray-300">--</span>
                     </div>
-                    <div class="flex justify-between items-center text-sm border-b border-borderBg/50 pb-2">
-                        <span class="text-gray-300">Candle Body</span>
-                        <span id="candleFactor" class="font-bold text-gray-500">--</span>
+                    <div class="flex justify-between items-center border-b border-borderBg pb-2">
+                        <span class="text-gray-400">EMA Trend Filter</span>
+                        <span id="emaTrend" class="font-bold text-gray-300">--</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Disclaimer Footer -->
             <div class="mt-6 pt-4 border-t border-borderBg text-[11px] text-gray-500 text-center">
-                <i class="fa-solid fa-triangle-exclamation mr-1 text-yellow-500"></i>
-                Signals are generated for analytical purposes only. Market risk applies.
+                <i class="fa-solid fa-shield-halved mr-1 text-gray-400"></i> Automated Market Hours Guard Active
             </div>
         </div>
     </main>
 
-    <!-- Dashboard Logic Script -->
     <script>
-        let chartInstance = null;
+        let chart, candleSeries;
+        let ws = null;
+        let currentCandle = null;
+        let candleHistory = [];
 
-        // Initialize Chart
+        // Market Schedule Verification (UTC based)
+        function checkMarketStatus(symbol) {
+            const now = new Date();
+            const day = now.getUTCDay(); // 0 = Sun, 6 = Sat
+            
+            // Forex/Commodities are closed on weekends
+            const isForexOrCommodity = symbol.includes("EUR") || symbol.includes("GBP") || symbol.includes("XAU");
+            
+            if (isForexOrCommodity && (day === 0 || day === 6)) {
+                return false; // Closed
+            }
+            return true; // Open (Crypto is 24/7)
+        }
+
         function initChart() {
-            const ctx = document.getElementById('marketChart').getContext('2d');
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Price (USD)',
-                        data: [],
-                        borderColor: '#00c076',
-                        borderWidth: 2,
-                        fill: false,
-                        tension: 0.1,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        x: { grid: { color: '#222733' }, ticks: { color: '#888' } },
-                        y: { grid: { color: '#222733' }, ticks: { color: '#888' } }
-                    }
-                }
+            const container = document.getElementById('chartContainer');
+            container.innerHTML = ''; // Clear previous
+
+            chart = LightweightCharts.createChart(container, {
+                layout: { backgroundColor: '#121824', textColor: '#d1d5db' },
+                grid: { vertLines: { color: '#1e2638' }, horzLines: { color: '#1e2638' } },
+                timeScale: { timeVisible: true, secondsVisible: false }
+            });
+
+            candleSeries = chart.addCandlestickSeries({
+                upColor: '#00e676',
+                downColor: '#ff1744',
+                borderUpColor: '#00e676',
+                borderDownColor: '#ff1744',
+                wickUpColor: '#00e676',
+                wickDownColor: '#ff1744',
             });
         }
 
-        // Fetch Market Data from Public API
-        async function updateMarketData() {
-            const asset = document.getElementById('assetSelect').value;
-            const days = document.getElementById('timeframeSelect').value;
+        function switchMarket() {
+            const symbol = document.getElementById('assetSelect').value;
+            document.getElementById('symbolTitle').innerText = symbol + " - 1 Minute Chart";
 
-            try {
-                const response = await fetch(`https://api.coingecko.com/api/v3/coins/${asset}/market_chart?vs_currency=usd&days=${days}`);
-                const data = await response.json();
+            const isOpen = checkMarketStatus(symbol);
+            const badge = document.getElementById('marketBadge');
+
+            if (!isOpen) {
+                badge.innerText = "MARKET CLOSED";
+                badge.className = "mt-5 px-3 py-1 rounded text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30";
                 
-                const prices = data.prices.map(item => item[1]);
-                const times = data.prices.map(item => new Date(item[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-
-                updateChart(times, prices);
-                calculateIndicators(prices);
-
-            } catch (error) {
-                console.error("Data Fetch Error:", error);
-            }
-        }
-
-        // Render Chart
-        function updateChart(labels, prices) {
-            chartInstance.data.labels = labels;
-            chartInstance.data.datasets[0].data = prices;
-            
-            const first = prices[0];
-            const last = prices[prices.length - 1];
-            const isBullish = last >= first;
-
-            chartInstance.data.datasets[0].borderColor = isBullish ? '#00c076' : '#ff3b30';
-            chartInstance.update();
-
-            // Update Price Header
-            document.getElementById('currentPrice').innerText = '$' + last.toLocaleString(undefined, {minimumFractionDigits: 2});
-            const diff = (((last - first) / first) * 100).toFixed(2);
-            
-            const changeElem = document.getElementById('priceChange');
-            changeElem.innerText = (diff >= 0 ? '+' : '') + diff + '%';
-            changeElem.className = `text-sm font-bold ${diff >= 0 ? 'text-emerald-400' : 'text-red-500'}`;
-
-            document.getElementById('highPrice').innerText = '$' + Math.max(...prices).toLocaleString();
-            document.getElementById('lowPrice').innerText = '$' + Math.min(...prices).toLocaleString();
-        }
-
-        // Quantitative Technical Analysis
-        function calculateIndicators(prices) {
-            if(prices.length < 21) return;
-
-            const currentPrice = prices[prices.length - 1];
-
-            // 1. RSI (14) Calculation
-            let gains = 0, losses = 0;
-            for(let i = prices.length - 14; i < prices.length; i++) {
-                let diff = prices[i] - prices[i-1];
-                if(diff >= 0) gains += diff;
-                else losses += Math.abs(diff);
-            }
-            let avgGain = gains / 14;
-            let avgLoss = losses / 14;
-            let rs = avgGain / (avgLoss || 1);
-            let rsi = 100 - (100 / (1 + rs));
-
-            // 2. SMA (21)
-            let sma21 = prices.slice(-21).reduce((a,b) => a+b, 0) / 21;
-
-            // 3. EMA (9) - Simple Approximation
-            let ema9 = prices.slice(-9).reduce((a,b) => a+b, 0) / 9;
-
-            // Update UI
-            document.getElementById('rsiValue').innerText = rsi.toFixed(1);
-            document.getElementById('emaValue').innerText = '$' + ema9.toFixed(1);
-            document.getElementById('smaValue').innerText = '$' + sma21.toFixed(1);
-
-            // Signal Confluence Analysis
-            runSignalEngine(currentPrice, rsi, ema9, sma21);
-        }
-
-        // Signal Confluence Engine
-        function runSignalEngine(price, rsi, ema, sma) {
-            let score = 0;
-
-            // Check RSI
-            let rsiStatus = "NEUTRAL";
-            if(rsi < 30) { score += 35; rsiStatus = "OVERSOLD (CALL)"; }
-            else if(rsi > 70) { score -= 35; rsiStatus = "OVERBOUGHT (PUT)"; }
-            document.getElementById('rsiFactor').innerText = rsiStatus;
-
-            // Check EMA vs Price
-            let emaStatus = "NEUTRAL";
-            if(price > ema) { score += 30; emaStatus = "BULLISH"; }
-            else { score -= 30; emaStatus = "BEARISH"; }
-            document.getElementById('emaFactor').innerText = emaStatus;
-
-            // Check SMA vs Price
-            let candleStatus = "NEUTRAL";
-            if(price > sma) { score += 35; candleStatus = "ABOVE TREND"; }
-            else { score -= 35; candleStatus = "BELOW TREND"; }
-            document.getElementById('candleFactor').innerText = candleStatus;
-
-            // Render Signal Badge
-            const badge = document.getElementById('signalBadge');
-            const text = document.getElementById('signalText');
-            const scoreText = document.getElementById('signalScore');
-
-            scoreText.innerText = `Confluence Score: ${Math.abs(score)}/100`;
-
-            if(score >= 50) {
-                text.innerText = "CALL (BUY)";
-                text.className = "text-2xl font-black text-emerald-400";
-                badge.className = "bg-emerald-950/40 border border-emerald-500/50 p-6 rounded-xl text-center mb-6";
-            } else if(score <= -50) {
-                text.innerText = "PUT (SELL)";
-                text.className = "text-2xl font-black text-red-500";
-                badge.className = "bg-red-950/40 border border-red-500/50 p-6 rounded-xl text-center mb-6";
+                // Show Market Closed Signal
+                const signalText = document.getElementById('signalText');
+                signalText.innerText = "MARKET CLOSED";
+                signalText.className = "text-xl font-black text-red-500";
+                document.getElementById('signalDetail').innerText = "Trading paused until market opens.";
+                
+                if (ws) ws.close();
+                return;
             } else {
-                text.innerText = "WAIT / NO TRADE";
-                text.className = "text-2xl font-black text-gray-400";
-                badge.className = "bg-darkBg border border-borderBg p-6 rounded-xl text-center mb-6";
+                badge.innerText = "MARKET OPEN";
+                badge.className = "mt-5 px-3 py-1 rounded text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30";
+            }
+
+            // Connect Live Data Feed
+            connectBinanceStream(symbol.toLowerCase());
+        }
+
+        function connectBinanceStream(symbol) {
+            if (ws) ws.close();
+
+            // Direct 1-Minute Candlestick WebSocket Stream
+            ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@kline_1m`);
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                const k = message.k; // Kline data
+
+                const candle = {
+                    time: Math.floor(k.t / 1000),
+                    open: parseFloat(k.o),
+                    high: parseFloat(k.h),
+                    low: parseFloat(k.l),
+                    close: parseFloat(k.c)
+                };
+
+                candleSeries.update(candle);
+                document.getElementById('livePrice').innerText = '$' + candle.close.toFixed(2);
+                document.getElementById('priceStatus').innerText = k.x ? "Candle Closed" : "Live Tick";
+
+                // Update Countdown
+                const now = new Date().getTime();
+                const remaining = Math.max(0, Math.floor((k.T - now) / 1000));
+                document.getElementById('countdown').innerText = `00:${remaining < 10 ? '0' : ''}${remaining}`;
+
+                // Process 1-Min Signal on Candle Close
+                if (k.x) { // Candle Closed Event
+                    process1MinSignal(candle);
+                }
+            };
+        }
+
+        function process1MinSignal(closedCandle) {
+            const isGreen = closedCandle.close > closedCandle.open;
+            
+            document.getElementById('prevColor').innerText = isGreen ? "GREEN (Bullish)" : "RED (Bearish)";
+            document.getElementById('prevColor').className = `font-bold ${isGreen ? 'text-green-400' : 'text-red-400'}`;
+
+            const signalText = document.getElementById('signalText');
+            const signalContainer = document.getElementById('signalContainer');
+
+            // 1-Minute Color Continuation Logic
+            if (isGreen) {
+                signalText.innerText = "CALL (BUY)";
+                signalText.className = "text-2xl font-black text-green-400";
+                signalContainer.className = "bg-green-950/40 border border-green-500/50 p-6 rounded-xl text-center mb-6";
+                document.getElementById('signalDetail').innerText = "Signal: Next 1-Min Candle Expected GREEN";
+            } else {
+                signalText.innerText = "PUT (SELL)";
+                signalText.className = "text-2xl font-black text-red-500";
+                signalContainer.className = "bg-red-950/40 border border-red-500/50 p-6 rounded-xl text-center mb-6";
+                document.getElementById('signalDetail').innerText = "Signal: Next 1-Min Candle Expected RED";
             }
         }
 
-        // App Initialization
         window.onload = () => {
             initChart();
-            updateMarketData();
+            switchMarket();
         };
     </script>
 </body>
